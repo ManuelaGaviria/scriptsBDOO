@@ -277,7 +277,7 @@ CREATE OR REPLACE PACKAGE PKG_UTILIDADES AS
   FUNCTION function_calcular_promedio(
     nota_examen_oral NUMBER,
     nota_examen_escrito NUMBER
-  ) RETURN VARCHAR2;
+  ) RETURN NUMBER;
 END PKG_UTILIDADES;
 /
 
@@ -287,13 +287,19 @@ CREATE OR REPLACE PACKAGE BODY PKG_UTILIDADES AS
   FUNCTION function_calcular_promedio(
     nota_examen_oral NUMBER,
     nota_examen_escrito NUMBER
-  ) RETURN VARCHAR2
+  ) RETURN NUMBER
   IS
+    sumarespuesta NUMBER(5, 2) := 0.0;
+    respuesta NUMBER(5, 2) := 0.0;
   BEGIN
-    RETURN TO_CHAR(ROUND((nota_examen_oral + nota_examen_escrito) / 2, 2), 'FM9990.00');
+    sumarespuesta := nota_examen_oral + nota_examen_escrito;
+    respuesta := sumarespuesta / 2;
+    RETURN respuesta;
   END function_calcular_promedio;
 
 END PKG_UTILIDADES;
 /
+--------------------------------------------------------------------------------------------
+
 
 

@@ -1,6 +1,10 @@
 INSERT INTO ESTADOS (CODIGO_ESTADO, NOMBRE_ESTADO) VALUES (1, 'Activo');
 INSERT INTO ESTADOS (CODIGO_ESTADO, NOMBRE_ESTADO) VALUES (2, 'Inactivo');
 
+INSERT INTO ESTADOS_EXAMENES (CODIGO_ESTADO, ESTADO_EXAMEN) VALUES (1, 'Aprobado');
+INSERT INTO ESTADOS_EXAMENES (CODIGO_ESTADO, ESTADO_EXAMEN) VALUES (2, 'Reprobado');
+INSERT INTO ESTADOS_EXAMENES (CODIGO_ESTADO, ESTADO_EXAMEN) VALUES (3, 'Pendiente');
+
 INSERT INTO ROLES (CODIGO_ROL, NOMBRE_ROL) VALUES (1, 'Administrador');
 INSERT INTO ROLES (CODIGO_ROL, NOMBRE_ROL) VALUES (2, 'Estudiante');
 INSERT INTO ROLES (CODIGO_ROL, NOMBRE_ROL) VALUES (3, 'Profesor');
@@ -265,3 +269,45 @@ BEGIN
     INSERT INTO NIVELES_OBJ VALUES (1, 'A1', v_clases, v_examenes);
 END;
 /
+
+-- Insert para la tabla EXAMENES_ORALES_PRESENTADOS
+INSERT INTO EXAMENES_ORALES_PRESENTADOS (
+    ID_EXAMEN, 
+    DNI_ESTUDIANTE, 
+    NOTA, 
+    FECHA, 
+    NIVEL
+) VALUES (
+    1,                      -- ID_EXAMEN (debe existir en EXAMENES_ORALES)
+    '1000412597',           -- DNI_ESTUDIANTE (debe existir en USUARIOS)
+    4.5,                    -- NOTA
+    TO_DATE('2024-11-01', 'YYYY-MM-DD'), -- FECHA
+    1                       -- NIVEL (debe existir en NIVELES_OBJ)
+);
+
+-- Insert para la tabla EXAMENES_ESCRITOS_PRESENTADOS
+INSERT INTO EXAMENES_ESCRITOS_PRESENTADOS (
+    ID_EXAMEN, 
+    DNI_ESTUDIANTE, 
+    NOTA, 
+    FECHA, 
+    NIVEL
+) VALUES (
+    1,                      -- ID_EXAMEN (debe existir en EXAMENES_ESCRITOS)
+    '1000412597',               -- DNI_ESTUDIANTE (debe existir en USUARIOS)
+    3.8,                    -- NOTA
+    TO_DATE('2024-11-02', 'YYYY-MM-DD'), -- FECHA
+    1                       -- NIVEL (debe existir en NIVELES_OBJ)
+);
+
+-- Insert para la tabla NOTAS
+INSERT INTO NOTAS (
+    ID_EXAMEN, 
+    PROMEDIO, 
+    ESTADO
+) VALUES (
+    1,                      -- ID_EXAMEN (debe existir en EXAMENES)
+    4.15,                   -- PROMEDIO
+    1                       -- ESTADO (debe existir en ESTADOS_EXAMENES)
+);
+
