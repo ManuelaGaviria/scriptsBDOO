@@ -178,3 +178,90 @@ BEGIN
     );
 END;
 /
+
+-- Inserts para la tabla RESPUESTAS
+INSERT INTO RESPUESTAS VALUES (1, 'Respuesta correcta', 'Sí');
+INSERT INTO RESPUESTAS VALUES (2, 'Respuesta incorrecta', 'No');
+INSERT INTO RESPUESTAS VALUES (3, 'Opción válida', 'Sí');
+INSERT INTO RESPUESTAS VALUES (4, 'Opción inválida', 'No');
+
+-- Inserts para la tabla PREGUNTAS (usando RESPUESTAS como tabla anidada)
+DECLARE
+    v_respuestas RESPUESTAS_TBL := RESPUESTAS_TBL(
+        RESPUESTA(1, 'Respuesta correcta', 'Sí'),
+        RESPUESTA(2, 'Respuesta incorrecta', 'No')
+    );
+BEGIN
+    INSERT INTO PREGUNTAS VALUES (1, '¿Cuál es la respuesta correcta?', v_respuestas);
+END;
+/
+
+DECLARE
+    v_respuestas RESPUESTAS_TBL := RESPUESTAS_TBL(
+        RESPUESTA(3, 'Opción válida', 'Sí'),
+        RESPUESTA(4, 'Opción inválida', 'No')
+    );
+BEGIN
+    INSERT INTO PREGUNTAS VALUES (2, '¿Es esta opción válida?', v_respuestas);
+END;
+/
+
+-- Inserts para la tabla EXAMENES_ESCRITOS (usando PREGUNTAS como tabla anidada)
+DECLARE
+    v_preguntas PREGUNTAS_TBL := PREGUNTAS_TBL(
+        PREGUNTA(1, '¿Cuál es la respuesta correcta?', RESPUESTAS_TBL(
+            RESPUESTA(1, 'Respuesta correcta', 'Sí'),
+            RESPUESTA(2, 'Respuesta incorrecta', 'No')
+        )),
+        PREGUNTA(2, '¿Es esta opción válida?', RESPUESTAS_TBL(
+            RESPUESTA(3, 'Opción válida', 'Sí'),
+            RESPUESTA(4, 'Opción inválida', 'No')
+        ))
+    );
+BEGIN
+    INSERT INTO EXAMENES_ESCRITOS VALUES (1, v_preguntas);
+END;
+/
+
+-- Inserts para la tabla EXAMENES_ORALES
+INSERT INTO EXAMENES_ORALES VALUES (1, 'http://ejemplo.com/examen_oral_1.mp3');
+INSERT INTO EXAMENES_ORALES VALUES (2, 'http://ejemplo.com/examen_oral_2.mp3');
+
+-- Inserts para la tabla EXAMENES (usando un EXAMEN_ORAL y un EXAMEN_ESCRITO anidados)
+DECLARE
+    v_oral EXAMEN_ORAL := EXAMEN_ORAL(1, 'http://ejemplo.com/examen_oral_1.mp3');
+    v_escrito EXAMEN_ESCRITO := EXAMEN_ESCRITO(1, PREGUNTAS_TBL(
+        PREGUNTA(1, '¿Cuál es la respuesta correcta?', RESPUESTAS_TBL(
+            RESPUESTA(1, 'Respuesta correcta', 'Sí'),
+            RESPUESTA(2, 'Respuesta incorrecta', 'No')
+        ))
+    ));
+BEGIN
+    INSERT INTO EXAMENES VALUES (1, 'Examen Nivel Básico', v_oral, v_escrito);
+END;
+/
+
+-- Inserts para la tabla CLASES
+INSERT INTO CLASES VALUES ('CL001', 1, 'Clase introductoria');
+INSERT INTO CLASES VALUES ('CL002', 2, 'Clase intermedia');
+
+-- Inserts para la tabla NIVELES_OBJ (usando CLASES y EXAMENES como tablas anidadas)
+DECLARE
+    v_clases CLASES_TBL := CLASES_TBL(
+        CLASE('CL001', 1, 'Clase introductoria'),
+        CLASE('CL002', 2, 'Clase intermedia')
+    );
+    v_examenes EXAMENES_TBL := EXAMENES_TBL(
+        EXAMEN(1, 'Examen Nivel Básico', EXAMEN_ORAL(1, 'http://ejemplo.com/examen_oral_1.mp3'), 
+            EXAMEN_ESCRITO(1, PREGUNTAS_TBL(
+                PREGUNTA(1, '¿Cuál es la respuesta correcta?', RESPUESTAS_TBL(
+                    RESPUESTA(1, 'Respuesta correcta', 'Sí'),
+                    RESPUESTA(2, 'Respuesta incorrecta', 'No')
+                ))
+            ))
+        )
+    );
+BEGIN
+    INSERT INTO NIVELES_OBJ VALUES (1, 'A1', v_clases, v_examenes);
+END;
+/
