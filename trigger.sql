@@ -1,89 +1,119 @@
--- Trigger para EXAMENES_ORALES_PRESENTADOS
-CREATE OR REPLACE TRIGGER TRG_INSERT_UPDATE_NOTAS_ORALES
-AFTER INSERT OR UPDATE ON EXAMENES_ORALES_PRESENTADOS
+CREATE OR REPLACE TRIGGER trg_examen_oral_presentado
+AFTER INSERT ON EXAMENES_ORALES_PRESENTADOS
 FOR EACH ROW
 DECLARE
-    nota_examen_oral NUMBER(3, 2) := :NEW.NOTA;
-    nota_examen_escrito NUMBER(3, 2) := 0.0;
-    promedio NUMBER(3, 2);
-    estado NUMBER(1);
+  v_numero_examen NUMBER;
+  v_nota_examen_escrito NUMBER;
+  v_promedio NUMBER;
 BEGIN
-    -- Intentar obtener la nota del examen escrito si ya existe
+  BEGIN
+    -- Obtener el NUMERO_EXAMEN correspondiente al examen oral
+    SELECT e.NUMERO_EXAMEN INTO v_numero_examen
+    FROM EXAMENES e
+    JOIN EXAMENES_ORALES eo ON eo.CODIGO_EXAMEN_ORAL = :NEW.ID_EXAMEN
+    WHERE e.ORAL.CODIGO_EXAMEN_ORAL = eo.CODIGO_EXAMEN_ORAL;
+  EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+      RAISE_APPLICATION_ERROR(-20001, 'Error: NUMERO_EXAMEN no encontrado para el ID_EXAMEN oral ' || :NEW.ID_EXAMEN);
+    WHEN OTHERS THEN
+      RAISE_APPLICATION_ERROR(-20002, 'Error desconocido al obtener NUMERO_EXAMEN: ' || SQLERRM);
+  END;
+
+  -- Intentar obtener la nota del examen escrito asociada, si existe
+  BEGIN
+    SELECT es.NOTA INTO v_nota_examen_escrito
+    FROM EXAMENES_ESCRITOS_PRESENTADOS es
+    WHERE es.ID_EXAMEN = :NEW.ID_EXAMEN AND es.DNI_ESTUDIANTE = :NEW.DNI_ESTUDIANTE;
+    
+    -- Si se encuentra la nota del examen escrito, calcular el promedio
     BEGIN
-        SELECT NOTA INTO nota_examen_escrito
-        FROM EXAMENES_ESCRITOS_PRESENTADOS
-        WHERE ID_EXAMEN = :NEW.ID_EXAMEN AND DNI_ESTUDIANTE = :NEW.DNI_ESTUDIANTE;
+      v_promedio := PKG_UTILIDADES.function_calcular_promedio(:NEW.NOTA, v_nota_examen_escrito);
     EXCEPTION
-        WHEN NO_DATA_FOUND THEN
-            nota_examen_escrito := 0.0; -- Si no hay nota de examen escrito, usar 0.0
+      WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20003, 'Error al calcular el promedio: ' || SQLERRM);
     END;
 
-    -- Calcular el promedio inicial
-    promedio := PKG_UTILIDADES.function_calcular_promedio(nota_examen_oral, nota_examen_escrito);
-
-    -- Determinar el estado en función del promedio inicial
-    IF nota_examen_escrito = 0.0 THEN
-        estado := 3; -- Estado pendiente si falta la nota de examen escrito
-    ELSE
-        estado := CASE WHEN promedio > 4 THEN 1 ELSE 2 END;
-    END IF;
-
-    -- Insertar o actualizar en la tabla NOTAS
+    -- Actualizar el promedio y estado en la tabla NOTAS
     BEGIN
-        UPDATE NOTAS
-        SET PROMEDIO = promedio, ESTADO = estado
-        WHERE ID_EXAMEN = :NEW.ID_EXAMEN;
-
-        -- Si no se actualizó ninguna fila, insertamos un nuevo registro en NOTAS
-        IF SQL%ROWCOUNT = 0 THEN
-            INSERT INTO NOTAS (ID_EXAMEN, PROMEDIO, ESTADO)
-            VALUES (:NEW.ID_EXAMEN, promedio, estado);
-        END IF;
+      UPDATE NOTAS
+      SET PROMEDIO = v_promedio,
+          ESTADO = CASE WHEN v_promedio > 4.0 THEN 1 ELSE 2 END
+      WHERE ID_EXAMEN = v_numero_examen;
+    EXCEPTION
+      WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20004, 'Error al actualizar la tabla NOTAS: ' || SQLERRM);
     END;
+
+  EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+      -- Si no se encuentra la nota del examen escrito, insertar en NOTAS solo con la nota del examen oral
+      BEGIN
+        INSERT INTO NOTAS (ID_EXAMEN, PROMEDIO, ESTADO)
+        VALUES (v_numero_examen, :NEW.NOTA, 3);
+      EXCEPTION
+        WHEN OTHERS THEN
+          RAISE_APPLICATION_ERROR(-20005, 'Error al insertar en la tabla NOTAS: ' || SQLERRM);
+      END;
+  END;
 END;
 /
 
--- Trigger para EXAMENES_ESCRITOS_PRESENTADOS
-CREATE OR REPLACE TRIGGER TRG_INSERT_UPDATE_NOTAS_ESCRITOS
-AFTER INSERT OR UPDATE ON EXAMENES_ESCRITOS_PRESENTADOS
+CREATE OR REPLACE TRIGGER trg_examen_escrito_presentado
+AFTER INSERT ON EXAMENES_ESCRITOS_PRESENTADOS
 FOR EACH ROW
 DECLARE
-    nota_examen_escrito NUMBER(3, 2) := :NEW.NOTA;
-    nota_examen_oral NUMBER(3, 2) := 0.0;
-    promedio NUMBER(3, 2);
-    estado NUMBER(1);
+  v_numero_examen NUMBER;
+  v_nota_examen_oral NUMBER;
+  v_promedio NUMBER;
 BEGIN
-    -- Intentar obtener la nota del examen oral si ya existe
+  BEGIN
+    -- Obtener el NUMERO_EXAMEN correspondiente al examen escrito
+    SELECT e.NUMERO_EXAMEN INTO v_numero_examen
+    FROM EXAMENES e
+    JOIN EXAMENES_ESCRITOS ee ON ee.CODIGO_EXAMEN_ESCRITO = :NEW.ID_EXAMEN
+    WHERE e.ESCRITO.CODIGO_EXAMEN_ESCRITO = ee.CODIGO_EXAMEN_ESCRITO;
+  EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+      RAISE_APPLICATION_ERROR(-20001, 'Error: NUMERO_EXAMEN no encontrado para el ID_EXAMEN escrito ' || :NEW.ID_EXAMEN);
+    WHEN OTHERS THEN
+      RAISE_APPLICATION_ERROR(-20002, 'Error desconocido al obtener NUMERO_EXAMEN: ' || SQLERRM);
+  END;
+
+  -- Intentar obtener la nota del examen oral asociada, si existe
+  BEGIN
+    SELECT eo.NOTA INTO v_nota_examen_oral
+    FROM EXAMENES_ORALES_PRESENTADOS eo
+    WHERE eo.ID_EXAMEN = :NEW.ID_EXAMEN AND eo.DNI_ESTUDIANTE = :NEW.DNI_ESTUDIANTE;
+    
+    -- Si se encuentra la nota del examen oral, calcular el promedio
     BEGIN
-        SELECT NOTA INTO nota_examen_oral
-        FROM EXAMENES_ORALES_PRESENTADOS
-        WHERE ID_EXAMEN = :NEW.ID_EXAMEN AND DNI_ESTUDIANTE = :NEW.DNI_ESTUDIANTE;
+      v_promedio := PKG_UTILIDADES.function_calcular_promedio(v_nota_examen_oral, :NEW.NOTA);
     EXCEPTION
-        WHEN NO_DATA_FOUND THEN
-            nota_examen_oral := 0.0; -- Si no hay nota de examen oral, usar 0.0
+      WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20003, 'Error al calcular el promedio: ' || SQLERRM);
     END;
 
-    -- Calcular el promedio inicial
-    promedio := PKG_UTILIDADES.function_calcular_promedio(nota_examen_oral, nota_examen_escrito);
-
-    -- Determinar el estado en función del promedio inicial
-    IF nota_examen_oral = 0.0 THEN
-        estado := 3; -- Estado pendiente si falta la nota de examen oral
-    ELSE
-        estado := CASE WHEN promedio > 4 THEN 1 ELSE 2 END;
-    END IF;
-
-    -- Insertar o actualizar en la tabla NOTAS
+    -- Actualizar el promedio y estado en la tabla NOTAS
     BEGIN
-        UPDATE NOTAS
-        SET PROMEDIO = promedio, ESTADO = estado
-        WHERE ID_EXAMEN = :NEW.ID_EXAMEN;
-
-        -- Si no se actualizó ninguna fila, insertamos un nuevo registro en NOTAS
-        IF SQL%ROWCOUNT = 0 THEN
-            INSERT INTO NOTAS (ID_EXAMEN, PROMEDIO, ESTADO)
-            VALUES (:NEW.ID_EXAMEN, promedio, estado);
-        END IF;
+      UPDATE NOTAS
+      SET PROMEDIO = v_promedio,
+          ESTADO = CASE WHEN v_promedio > 4.0 THEN 1 ELSE 2 END
+      WHERE ID_EXAMEN = v_numero_examen;
+    EXCEPTION
+      WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20004, 'Error al actualizar la tabla NOTAS: ' || SQLERRM);
     END;
+
+  EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+      -- Si no se encuentra la nota del examen oral, insertar en NOTAS solo con la nota del examen escrito
+      BEGIN
+        INSERT INTO NOTAS (ID_EXAMEN, PROMEDIO, ESTADO)
+        VALUES (v_numero_examen, :NEW.NOTA, 3);
+      EXCEPTION
+        WHEN OTHERS THEN
+          RAISE_APPLICATION_ERROR(-20005, 'Error al insertar en la tabla NOTAS: ' || SQLERRM);
+      END;
+  END;
 END;
 /

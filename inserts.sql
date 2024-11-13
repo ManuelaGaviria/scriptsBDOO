@@ -270,6 +270,7 @@ BEGIN
 END;
 /
 
+/* Este se debe hacer para probar que funcionen los trigger del promedio
 -- Insert para la tabla EXAMENES_ORALES_PRESENTADOS
 INSERT INTO EXAMENES_ORALES_PRESENTADOS (
     ID_EXAMEN, 
@@ -310,4 +311,4 @@ INSERT INTO NOTAS (
     4.15,                   -- PROMEDIO
     1                       -- ESTADO (debe existir en ESTADOS_EXAMENES)
 );
-
+*/
