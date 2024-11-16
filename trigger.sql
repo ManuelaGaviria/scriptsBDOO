@@ -38,7 +38,7 @@ BEGIN
       UPDATE NOTAS
       SET PROMEDIO = v_promedio,
           ESTADO = CASE WHEN v_promedio > 4.0 THEN 1 ELSE 2 END
-      WHERE ID_EXAMEN = v_numero_examen;
+      WHERE ID_EXAMEN = v_numero_examen AND DNI_ESTUDIANTE=:NEW.DNI_ESTUDIANTE;
     EXCEPTION
       WHEN OTHERS THEN
         RAISE_APPLICATION_ERROR(-20004, 'Error al actualizar la tabla NOTAS: ' || SQLERRM);
@@ -48,8 +48,8 @@ BEGIN
     WHEN NO_DATA_FOUND THEN
       -- Si no se encuentra la nota del examen escrito, insertar en NOTAS solo con la nota del examen oral
       BEGIN
-        INSERT INTO NOTAS (ID_EXAMEN, PROMEDIO, ESTADO)
-        VALUES (v_numero_examen, :NEW.NOTA, 3);
+        INSERT INTO NOTAS (ID_EXAMEN, DNI_ESTUDIANTE, PROMEDIO, ESTADO)
+        VALUES (v_numero_examen, :NEW.DNI_ESTUDIANTE, :NEW.NOTA, 3);
       EXCEPTION
         WHEN OTHERS THEN
           RAISE_APPLICATION_ERROR(-20005, 'Error al insertar en la tabla NOTAS: ' || SQLERRM);
@@ -98,7 +98,7 @@ BEGIN
       UPDATE NOTAS
       SET PROMEDIO = v_promedio,
           ESTADO = CASE WHEN v_promedio > 4.0 THEN 1 ELSE 2 END
-      WHERE ID_EXAMEN = v_numero_examen;
+     WHERE ID_EXAMEN = v_numero_examen AND DNI_ESTUDIANTE=:NEW.DNI_ESTUDIANTE;
     EXCEPTION
       WHEN OTHERS THEN
         RAISE_APPLICATION_ERROR(-20004, 'Error al actualizar la tabla NOTAS: ' || SQLERRM);
@@ -108,8 +108,8 @@ BEGIN
     WHEN NO_DATA_FOUND THEN
       -- Si no se encuentra la nota del examen oral, insertar en NOTAS solo con la nota del examen escrito
       BEGIN
-        INSERT INTO NOTAS (ID_EXAMEN, PROMEDIO, ESTADO)
-        VALUES (v_numero_examen, :NEW.NOTA, 3);
+        INSERT INTO NOTAS (ID_EXAMEN, DNI_ESTUDIANTE, PROMEDIO, ESTADO)
+        VALUES (v_numero_examen, :NEW.DNI_ESTUDIANTE, :NEW.NOTA, 3);
       EXCEPTION
         WHEN OTHERS THEN
           RAISE_APPLICATION_ERROR(-20005, 'Error al insertar en la tabla NOTAS: ' || SQLERRM);

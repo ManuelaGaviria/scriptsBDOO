@@ -2,6 +2,7 @@ start C:\Users\ASUS\Documents\GitHub\scriptsBDOO\creacion.sql
 start C:\Users\ASUS\Documents\GitHub\scriptsBDOO\inserts.sql
 start C:\Users\ASUS\Documents\GitHub\scriptsBDOO\packages.sql
 start C:\Users\ASUS\Documents\GitHub\scriptsBDOO\trigger.sql
+start C:\Users\ASUS\Documents\GitHub\scriptsBDOO\grant.sql
 
 /*TABLESPACE
 

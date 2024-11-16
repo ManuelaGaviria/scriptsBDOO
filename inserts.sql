@@ -162,6 +162,7 @@ INSERT INTO Usuarios VALUES (
     2                       -- ROL_USU (debe existir en ROLES)
 );
 
+/*
 -- Primero, asegúrate de tener el profesor en el formato de tipo USUARIO
 DECLARE
     v_profesor USUARIO := USUARIO('123456789', 'Juan', 'Pérez', 'Gómez', 1, 'juan.perez@example.com', 1, 'password123', TO_DATE('1990-01-01', 'YYYY-MM-DD'), 1, 3);
@@ -182,6 +183,7 @@ BEGIN
     );
 END;
 /
+*/
 
 -- Inserts para la tabla RESPUESTAS
 INSERT INTO RESPUESTAS VALUES (1, 'Respuesta correcta', 'Sí');
