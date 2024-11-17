@@ -97,6 +97,7 @@ AS
     RETURN v_profesor;
   END default_professor;
 
+  --cambia left join de clases programadas a cupos
   FUNCTION default_salon_code(
     p_fecha IN DATE,
     p_hora IN NUMBER
@@ -159,6 +160,7 @@ AS
   IS
     v_count NUMBER;
   BEGIN
+  --Ahora las tres operaciones son sobre cp
     SELECT COUNT(*)
     INTO v_count
     FROM CLASES_PROGRAMADAS cp, TABLE(cp.ESTUDIANTES) e
@@ -218,6 +220,9 @@ AS
     IF estudiante_ya_programado(p_fecha, p_hora, p_dni) THEN
       RAISE_APPLICATION_ERROR(-20003, 'El estudiante ya tiene una clase programada en esta fecha y hora.');
     END IF;
+
+    --select count en clases_programads donde fecha y hora, contar cuántos hay
+    --Si hay menos de 6, llamamos al procedimiento de agregar
     
     -- Verificar clases existentes en la fecha y hora dadas
     FOR clase_rec IN (
@@ -249,6 +254,8 @@ AS
     END IF;
 
     -- Insertar la nueva clase con el salón y profesor asignados
+
+    --Este insert cambia
     INSERT INTO CLASES_PROGRAMADAS (
         COD_CLASE_PROG, COD_NIVEL, FECHA, COD_HORA, COD_SALON, CUPOS_REGISTRADOS, PROFESOR, ESTUDIANTES
     ) VALUES (
